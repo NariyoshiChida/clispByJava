@@ -1,0 +1,1 @@
+(defun func (a b) (+ a b))
