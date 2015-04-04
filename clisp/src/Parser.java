@@ -2,6 +2,7 @@ import java.util.*;
 
 /*
  * 引数や戻り値のない関数はないものとする　
+ * 括弧のつけ忘れに注意
  */
 
 public class Parser {
@@ -22,13 +23,35 @@ public class Parser {
     public ConsCell getAST(){ return AST; }
     public HashMap<String,Integer> getVariable(){return variable; }
     
+    private static boolean isOut(String s){
+    	return s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/") || s.equals("<") || s.equals("=");
+    }
+    
     /*
      引数を返す
      Fig .1 (a)[null|pointer to (b)] -> (b)[null|pointer to(c) ] -> ... -> (z)[null|null]
      Fig .1の場合は図のような木を作り(a)を返す
+     
+     ()[値|次へのポインタ]とする
+     使用する際はeval(値)とすること
      */
     public ConsCell getParameter() {
-    	assert pos < tokens.size() && tokens.get(pos).equals("(");
+    	if( !tokens.get(pos).equals("(") ) {
+    		ConsCell ret = new ConsCell("",null,null);
+    		ConsCell temp = new ConsCell(tokens.get(pos),null,null);
+    		ret.setFront(temp);
+    		++pos;
+    		return ret;
+    	}
+
+    	if( tokens.get(pos).equals("(") && pos+1 < tokens.size() && isOut(tokens.get(pos+1)) ) {
+    		ConsCell ret = new ConsCell("",null,null);
+    		ConsCell temp = new ConsCell("",null,null);
+    		exp(temp);
+    		ret.setFront(temp);
+    		return ret;
+    	}
+    	/*
     	++pos;
     	ConsCell ret = new ConsCell(tokens.get(pos),null,null);
     	ConsCell cur = ret;
@@ -38,6 +61,32 @@ public class Parser {
     		cur.setBack(temp);
     		cur = temp;
     		++pos;
+    	}
+    	*/
+    	
+    	ConsCell ret = new ConsCell("",null,null);
+    	++pos;
+    	if( tokens.get(pos).equals("(") ) {
+    		ConsCell temp = new ConsCell("",null,null);
+    		exp(temp);
+    		ret.setFront(temp);
+    	} else {
+    		ConsCell temp = new ConsCell(tokens.get(pos),null,null);
+    		ret.setFront(temp);
+    		++pos;
+    	}
+    	ConsCell cur = ret;
+    	int cnt = 1;
+    	while( pos < tokens.size() && !tokens.get(pos).equals(")") ){
+    		ConsCell temp = new ConsCell("",null,null);
+    		if( tokens.get(pos).equals("(") ) {
+    			exp(temp);
+    		} else {
+    			temp.setType(tokens.get(pos));
+    			++pos;
+    		}
+    		cur.setBack(temp);
+    		cur = temp;
     	}
     	++pos;
     	return ret;
@@ -60,6 +109,9 @@ public class Parser {
     }
     
     public void exp(ConsCell ast){
+    	
+    	
+    	
     	if( pos < tokens.size() && !tokens.get(pos).equals("(") ) {
     		ast.setType(tokens.get(pos));
     		ast.setFront(null);
@@ -75,6 +127,7 @@ public class Parser {
     		return;
     	}
     	
+    	boolean adj = tokens.get(pos).equals("(");
     	++pos;
     	boolean found = true;
     	
@@ -97,8 +150,7 @@ public class Parser {
     		ast.setType("setq");
     		++pos;
     		ConsCell front = term();
-    		//ConsCell back  = term();
-    		ConsCell back = getParameter();
+    		ConsCell back  = term();
     		++pos;
     		
     		ast.setFront(front);
@@ -144,13 +196,20 @@ public class Parser {
     		ast.setType(tokens.get(pos));
     		++pos;
     		ast.setBack(getParameter());
+    		if( adj ) ++pos; // ( + ( f a ) ( f a ) ) みたいな時のため
     		return;
     	}
     	
     	
     	++pos;
+    	/*
     	ConsCell front = term();
     	ConsCell back  = term();
+    	*/
+    	ConsCell front = new ConsCell("",null,null);
+    	exp(front);
+    	ConsCell back = new ConsCell("",null,null);
+    	exp(back);
     	ast.setFront(front);
     	ast.setBack(back);
     	assert pos < tokens.size() && tokens.get(pos).equals(")");

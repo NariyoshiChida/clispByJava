@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Clisp {
 	
-	private static boolean DEBUG = true;
+	private static boolean DEBUG = false;
 	
 	private static String prompt = ">>>";
 	private static HashMap<String,Integer> variable;
@@ -25,9 +25,7 @@ public class Clisp {
 		if( DEBUG ) System.out.println("type = " + type);
 		if( type.equals("+") ) {
 			Integer front = eval(cell.getFront());
-			System.out.println("FRONT = " + front);
 			Integer back  = eval(cell.getBack());
-			System.out.println("back = " + back);
 			return front + back;
 		} else if( type.equals("-") ) {
 			Integer front = eval(cell.getFront());
@@ -62,20 +60,22 @@ public class Clisp {
 		} else if( isInteger(type) ) {
 			return Integer.valueOf(type);
 		} else { //関数
-			System.out.println(function.containsKey(type) + "? -> " + type );
 			assert function.containsKey(type);
+			if( DEBUG ) System.out.println("now function is " + type);
 			ConsCell f = function.get(type);
 			ConsCell parameter = f.getFront();
-			ConsCell my_parameter = cell.getFront();
+			ConsCell my_parameter = cell.getBack();
 			HashMap<String,Integer> store = new HashMap<String,Integer>();
-			while( parameter.getFront() != null || parameter.getBack() != null ){
-				if( variable.containsKey(parameter.getType()) ) {
-					store.put(parameter.getType(), variable.get(parameter.getType()));
+			while( parameter != null ){
+				if( variable.containsKey(parameter.getFront().getType()) ) {
+					store.put(parameter.getFront().getType(), variable.get(parameter.getFront().getType()));
 				} else {
-					store.put(parameter.getType(), null);
+					store.put(parameter.getFront().getType(), null);
 				}
-				variable.put(parameter.getType(),Integer.valueOf(my_parameter.getType()));
+				variable.put(parameter.getFront().getType(),Integer.valueOf(eval(my_parameter.getFront())));
 				parameter = parameter.getBack();
+				my_parameter = my_parameter.getBack();
+				//if( parameter == null ) break;
 			}
 			Integer ret = eval(f.getBack());
 			for(Map.Entry<String,Integer> itr : store.entrySet() ){
@@ -106,7 +106,7 @@ public class Clisp {
 	}
 	
 	public static void execute(String buffer){
-		System.out.println("buffer = " + buffer);
+		if( DEBUG ) System.out.println("buffer = " + buffer);
 		Lexer lexer = new Lexer(buffer);
 		ArrayList<String> token = lexer.lexer();
 		if( DEBUG ) {
@@ -132,21 +132,20 @@ public class Clisp {
 			System.out.println(AST.getFront().getType() + " = " + value);
 		} else if( AST.getType().equals("defun") ) {
 			function.put(AST.getBack().getType(),AST.getBack());
-			System.out.println("????" + function.containsKey(AST.getBack().getType()));
 			System.out.println("define " + AST.getBack().getType());
 		} else if( AST.getType().equals("if") ) {
 			Integer res = eval(AST);
 			if( res.equals(1) ) System.out.println("True");
 			else                System.out.println("Nil");
 		} else {
+			if( DEBUG ) tree_walk(AST);
 			System.out.println(eval(AST));
 		}
 
 	}
 	
 	public static void compute(String buffer){
-		variable = new HashMap<String,Integer>();
-		function = new HashMap<String,ConsCell>();
+		
 		if( DEBUG ) System.out.println("initial buffer =" + buffer);
 		String buffer2 = "";
 		int counter = 0;
@@ -168,6 +167,8 @@ public class Clisp {
 	}
 	
 	public static void main(String[] args) {
+		variable = new HashMap<String,Integer>();
+		function = new HashMap<String,ConsCell>();
 		// TODO Auto-generated method stub
 		try {
 			boolean interactive = false;
