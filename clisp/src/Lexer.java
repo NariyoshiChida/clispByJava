@@ -25,7 +25,12 @@ public class Lexer {
 	    char c = buffer.charAt(i);
 	    if( c == ' ' ) continue;
 	    if( c == '(' || c == ')' || c == '+' || c == '/' || c == '*' || c == '=' || c == '<' ) {
-		ret.add(String.valueOf(c));
+	    	if( c == '<' && i+1 < buffer.length() && buffer.charAt(i+1) == '=' ) {
+	    		ret.add("<=");
+	    		i++;
+	    	} else {
+	    		ret.add(String.valueOf(c));
+	    	}
 	    } else if ( c == '-' ) {
 
 		assert ( i + 1 ) < buffer.length();
