@@ -78,15 +78,17 @@ public class Parser {
     	ConsCell cur = ret;
     	int cnt = 1;
     	while( pos < tokens.size() && !tokens.get(pos).equals(")") ){
-    		ConsCell temp = new ConsCell("",null,null);
+    		ConsCell internal = new ConsCell("",null,null);
+    		ConsCell value_node = new ConsCell("",null,null);
     		if( tokens.get(pos).equals("(") ) {
-    			exp(temp);
+    			exp(value_node);
     		} else {
-    			temp.setType(tokens.get(pos));
+    			value_node.setType(tokens.get(pos));
     			++pos;
     		}
-    		cur.setBack(temp);
-    		cur = temp;
+    		internal.setFront(value_node);
+    		cur.setBack(internal);
+    		cur = internal;
     	}
     	++pos;
     	return ret;
