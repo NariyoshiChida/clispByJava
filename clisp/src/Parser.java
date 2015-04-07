@@ -24,7 +24,7 @@ public class Parser {
     public HashMap<String,Integer> getVariable(){return variable; }
     
     private static boolean isOut(String s){
-    	return s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/") || s.equals("<") || s.equals("=");
+    	return s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/") || s.equals("<") || s.equals("=") || s.equals("<=");
     }
     
     /*
@@ -112,8 +112,6 @@ public class Parser {
     
     public void exp(ConsCell ast){
     	
-    	
-    	
     	if( pos < tokens.size() && !tokens.get(pos).equals("(") ) {
     		ast.setType(tokens.get(pos));
     		ast.setFront(null);
@@ -145,6 +143,8 @@ public class Parser {
     		ast.setType("<");
     	} else if( tokens.get(pos).equals("=") ) {
     		ast.setType("=");
+    	} else if( tokens.get(pos).equals("<=") ) {
+    		ast.setType("<=");
     	} else found = false;
     	
     	    	
