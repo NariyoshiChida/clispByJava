@@ -50,6 +50,11 @@ public class Clisp {
 			Integer back  = eval(cell.getBack());
 			if( front.compareTo(back) == -1 ) return 1;
 			else                              return 0;
+		} else if( type.equals("<=") ) {
+			Integer front = eval(cell.getFront());
+			Integer back  = eval(cell.getBack());
+			if( front.compareTo(back) >= 0 )  return 1;
+			else                              return 0;
 		} else if( type.equals("if") ) {
 			ConsCell condition = cell.getFront();
 			Integer res = eval(condition);
