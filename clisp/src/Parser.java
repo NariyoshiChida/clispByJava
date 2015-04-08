@@ -27,6 +27,22 @@ public class Parser {
     	return s.equals("+") || s.equals("-") || s.equals("*") || s.equals("/") || s.equals("<") || s.equals("=") || s.equals("<=");
     }
     
+	private static void tree_walk(ConsCell cell){
+		System.out.print("("+cell.getType()+")[");
+		if( cell.getFront() != null ) {
+			tree_walk(cell.getFront());
+		} else {
+			System.out.print("null");
+		}
+		System.out.print(" | ");
+		if( cell.getBack() != null ) {
+			tree_walk(cell.getBack());
+		} else {
+			System.out.print("null");
+		}
+		System.out.print("] ");
+	}
+    
     /*
      引数を返す
      Fig .1 (a)[null|pointer to (b)] -> (b)[null|pointer to(c) ] -> ... -> (z)[null|null]
@@ -51,19 +67,7 @@ public class Parser {
     		ret.setFront(temp);
     		return ret;
     	}
-    	/*
-    	++pos;
-    	ConsCell ret = new ConsCell(tokens.get(pos),null,null);
-    	ConsCell cur = ret;
-    	++pos;
-    	while( pos < tokens.size() && !tokens.get(pos).equals(")") ){
-    		ConsCell temp = new ConsCell(tokens.get(pos),null,null);
-    		cur.setBack(temp);
-    		cur = temp;
-    		++pos;
-    	}
-    	*/
-    	
+
     	ConsCell ret = new ConsCell("",null,null);
     	++pos;
     	if( tokens.get(pos).equals("(") ) {
