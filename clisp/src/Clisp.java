@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.lang.*;
 
 public class Clisp {
 	
@@ -14,13 +17,13 @@ public class Clisp {
 	private static HashMap<String,ConsCell> function;
 	
 	private static boolean isInteger(String s){
-		for(int i=0;i<s.length();i++){
-			if( !( '0' <= s.charAt(i) && s.charAt(i) <= '9' ) ) return false;
-		}
-		return true;
+		Pattern p = Pattern.compile("\\A[-]?[0-9]+\\z");
+		Matcher m = p.matcher(s);
+		return m.find();
 	}
 	
 	private static Integer eval(ConsCell cell){
+
 		String type = cell.getType();
 		if( DEBUG ) System.out.println("type = " + type);
 		if( type.equals("+") ) {
@@ -53,7 +56,7 @@ public class Clisp {
 		} else if( type.equals("<=") ) {
 			Integer front = eval(cell.getFront());
 			Integer back  = eval(cell.getBack());
-			if( front.compareTo(back) >= 0 )  return 1;
+			if( front.compareTo(back) <= 0 )  return 1;
 			else                              return 0;
 		} else if( type.equals("if") ) {
 			ConsCell condition = cell.getFront();
@@ -67,20 +70,25 @@ public class Clisp {
 		} else { //関数
 			assert function.containsKey(type);
 			if( DEBUG ) System.out.println("now function is " + type);
+			
 			ConsCell f = function.get(type);
 			ConsCell parameter = f.getFront();
 			ConsCell my_parameter = cell.getBack();
 			HashMap<String,Integer> store = new HashMap<String,Integer>();
+
+			HashMap<String,Integer> localBuffer = new HashMap<String,Integer>();
 			while( parameter != null ){
 				if( variable.containsKey(parameter.getFront().getType()) ) {
 					store.put(parameter.getFront().getType(), variable.get(parameter.getFront().getType()));
 				} else {
 					store.put(parameter.getFront().getType(), null);
 				}
-				variable.put(parameter.getFront().getType(),Integer.valueOf(eval(my_parameter.getFront())));
+				localBuffer.put(parameter.getFront().getType(),Integer.valueOf(eval(my_parameter.getFront())));
 				parameter = parameter.getBack();
 				my_parameter = my_parameter.getBack();
-				//if( parameter == null ) break;
+			}
+			for(Map.Entry<String,Integer> itr : localBuffer.entrySet() ){
+				variable.put(itr.getKey(),itr.getValue());
 			}
 			Integer ret = eval(f.getBack());
 			for(Map.Entry<String,Integer> itr : store.entrySet() ){
@@ -137,7 +145,15 @@ public class Clisp {
 			System.out.println(AST.getFront().getType() + " = " + value);
 		} else if( AST.getType().equals("defun") ) {
 			function.put(AST.getBack().getType(),AST.getBack());
-			System.out.println("define " + AST.getBack().getType());
+			System.out.print(AST.getType());
+			System.out.print(" " + AST.getBack().getType() + "(");
+			ConsCell temp = AST.getBack().getFront();
+			while( temp != null ){
+				System.out.print(temp.getFront().getType());
+				temp = temp.getBack();
+				if( temp != null ) System.out.print(",");
+			}
+			System.out.println(")");
 		} else if( AST.getType().equals("if") ) {
 			Integer res = eval(AST);
 			if( res.equals(1) ) System.out.println("True");
@@ -208,5 +224,4 @@ public class Clisp {
 			System.out.println(e);
 		}
 	}
-
 }
